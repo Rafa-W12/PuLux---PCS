@@ -1,41 +1,40 @@
 #include "BluetoothSerial.h"
-// Inicia biblioteca Bluetooth
+
 BluetoothSerial SerialBT;
 
-const int pinLDR = 18;      // Verifique se é um pino ADC válido
-const int pinBotao = 19;
+const int pinoLDR = 34;
+const int pinoBotao = 4;
+const int pinoLed = 18;
 
 void setup() {
   Serial.begin(115200);
-  SerialBT.begin("ESP32_BT");
 
-  pinMode(pinBotao, INPUT_PULLUP);
-  Serial.println("Bluetooth INICIADO");
+  SerialBT.begin("ESP32_Luminosidade");
+
+  pinMode(pinoBotao, INPUT_PULLUP);
+  pinMode(pinoLDR, INPUT);
+
+  // Configuração do LED
+  pinMode(pinoLed, OUTPUT);
+  digitalWrite(pinoLed, HIGH);  // LED sempre ligado
+
+  Serial.println("Bluetooth iniciado. Pareie com 'ESP32_Luminosidade'.");
 }
 
 void loop() {
-  // Botão pressionado (INPUT_PULLUP => LOW)
-  if (digitalRead(pinBotao) == LOW) {
 
-    int leitura = analogRead(pinLDR);
+  if (digitalRead(pinoBotao) == LOW) {
 
-    int luminosidade = map(leitura, 0, 4095, 0, 100);
-    luminosidade = constrain(luminosidade, 0, 100);
+    int leituraADC = analogRead(pinoLDR);
 
-    Serial.print("Luminosidade: ");
-    Serial.print(luminosidade);
-    Serial.println("%");
+    int luminosidade = map(leituraADC, 0, 4095, 0, 100);
 
-    SerialBT.print("Luminosidade: ");
-    SerialBT.print(luminosidade);
-    SerialBT.println("%");
+    String msg = "Leitura ADC: " + String(leituraADC) +
+                 " -> Luminosidade: " + String(luminosidade) + "%";
 
-    // Aguarda soltar o botão
-    while (digitalRead(pinBotao) == LOW) {
-      delay(10);
-    }
+    Serial.println(msg);
+    SerialBT.println(msg);
 
-    // Debounce
-    delay(50);
+    delay(300);
   }
 }
